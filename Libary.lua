@@ -990,6 +990,12 @@ local NovaUI = loadstring([[
     return NovaUI
 ]])()
 
+-- Kiểm tra xem loadstring có trả về một hàm hợp lệ không
+if not NovaUI then
+    error("loadstring failed to compile the code. Please check the code for syntax errors.")
+end
+
+-- Định nghĩa Theme
 local Theme = {
     WindowBg = Color3.fromRGB(20, 20, 25),
     TitleBar = Color3.fromRGB(30, 30, 40),
