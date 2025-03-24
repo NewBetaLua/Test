@@ -1,0 +1,811 @@
+-- NovaUI: A custom UI library inspired by redzlib
+local NovaUI = {}
+
+-- Dịch vụ của Roblox
+local MarketplaceService = game:GetService("MarketplaceService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local PlayerMouse = Player:GetMouse()
+
+-- Cấu hình giao diện của NovaUI
+NovaUI.Themes = {
+    Nova = {
+        ["Color Hub 1"] = ColorSequence.new({
+            ColorSequenceKeypoint.new(0.00, Color3.fromRGB(20, 20, 30)),
+            ColorSequenceKeypoint.new(0.50, Color3.fromRGB(30, 30, 40)),
+            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(20, 20, 30))
+        }),
+        ["Color Hub 2"] = Color3.fromRGB(25, 25, 35),
+        ["Color Stroke"] = Color3.fromRGB(50, 50, 60),
+        ["Color Theme"] = Color3.fromRGB(255, 105, 180), -- Màu hồng phấn làm chủ đạo
+        ["Color Text"] = Color3.fromRGB(255, 255, 255),
+        ["Color Dark Text"] = Color3.fromRGB(200, 200, 200)
+    }
+}
+
+NovaUI.Info = {
+    Version = "1.0.0"
+}
+
+NovaUI.Save = {
+    UISize = {600, 450}, -- Kích thước lớn hơn redzlib
+    TabSize = 180, -- Tab rộng hơn
+    Theme = "Nova"
+}
+
+NovaUI.Settings = {}
+NovaUI.Connection = {}
+NovaUI.Instances = {}
+NovaUI.Elements = {}
+NovaUI.Options = {}
+NovaUI.Flags = {}
+NovaUI.Tabs = {}
+
+-- Hàm tiện ích
+local function Create(class, props, children)
+    local instance = Instance.new(class)
+    for prop, value in pairs(props or {}) do
+        instance[prop] = value
+    end
+    for _, child in pairs(children or {}) do
+        child.Parent = instance
+    end
+    return instance
+end
+
+local function MakeDrag(frame)
+    local dragging, dragInput, dragStart, startPos
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    return frame
+end
+
+local function CreateTween(tweenInfo)
+    local info = tweenInfo[1]
+    local property = tweenInfo[2]
+    local value = tweenInfo[3]
+    local time = tweenInfo[4] or 0.3
+    local waitForCompletion = tweenInfo[5] or false
+    local tween = TweenService:Create(info, TweenInfo.new(time, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {[property] = value})
+    tween:Play()
+    if waitForCompletion then
+        tween.Completed:Wait()
+    end
+    return tween
+end
+
+-- Hàm tạo cửa sổ chính
+function NovaUI:MakeWindow(Configs)
+    local Title = Configs.Title or "NovaUI"
+    local SubTitle = Configs.SubTitle or "Custom UI"
+    local Theme = NovaUI.Themes[Configs.Save and Configs.Save.Theme or "Nova"]
+
+    local ScreenGui = Create("ScreenGui", {
+        Parent = CoreGui,
+        ResetOnSpawn = false,
+        IgnoreGuiInset = true
+    })
+
+    local MainFrame = MakeDrag(Create("Frame", {
+        Size = UDim2.new(0, NovaUI.Save.UISize[1], 0, NovaUI.Save.UISize[2]),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundColor3 = Color3.fromRGB(20, 20, 30), -- Sử dụng Color3 thay vì ColorSequence
+        BackgroundTransparency = 0
+    }, {
+        Create("UIGradient", {
+            Color = Theme["Color Hub 1"],
+            Rotation = 90
+        }),
+        Create("UICorner", {
+            CornerRadius = UDim.new(0, 8)
+        }),
+        Create("UIStroke", {
+            Color = Theme["Color Stroke"],
+            Thickness = 1
+        })
+    }))
+
+    local TitleBar = Create("Frame", {
+        Parent = MainFrame,
+        Size = UDim2.new(1, 0, 0, 28),
+        BackgroundColor3 = Theme["Color Hub 2"],
+        BackgroundTransparency = 0
+    }, {
+        Create("UICorner", {
+            CornerRadius = UDim.new(0, 8)
+        })
+    })
+
+    local TitleLabel = Create("TextLabel", {
+        Parent = TitleBar,
+        Size = UDim2.new(1, -60, 0, 20),
+        Position = UDim2.new(0, 10, 0.5, 0),
+        AnchorPoint = Vector2.new(0, 0.5),
+        BackgroundTransparency = 1,
+        Text = Title .. " | " .. SubTitle,
+        TextColor3 = Theme["Color Text"],
+        TextSize = 14,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    local CloseButton = Create("ImageButton", {
+        Parent = TitleBar,
+        Size = UDim2.new(0, 20, 0, 20),
+        Position = UDim2.new(1, -25, 0.5, 0),
+        AnchorPoint = Vector2.new(1, 0.5),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://10734962600" -- Icon "slash"
+    })
+
+    local MinimizeButton = Create("ImageButton", {
+        Parent = TitleBar,
+        Size = UDim2.new(0, 20, 0, 20),
+        Position = UDim2.new(1, -50, 0.5, 0),
+        AnchorPoint = Vector2.new(1, 0.5),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://10734996206" -- Icon "minus"
+    })
+
+    local MainScroll = Create("ScrollingFrame", {
+        Parent = MainFrame,
+        Size = UDim2.new(0, NovaUI.Save.TabSize, 1, -28),
+        Position = UDim2.new(0, 0, 0, 28),
+        BackgroundTransparency = 1,
+        ScrollBarThickness = 0,
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        AutomaticCanvasSize = Enum.AutomaticSize.Y
+    }, {
+        Create("UIListLayout", {
+            Padding = UDim.new(0, 5),
+            SortOrder = Enum.SortOrder.LayoutOrder
+        }),
+        Create("UIPadding", {
+            PaddingTop = UDim.new(0, 5),
+            PaddingBottom = UDim.new(0, 5)
+        })
+    })
+
+    local Containers = Create("Frame", {
+        Parent = MainFrame,
+        Size = UDim2.new(1, -NovaUI.Save.TabSize, 1, -28),
+        Position = UDim2.new(0, NovaUI.Save.TabSize, 0, 28),
+        BackgroundTransparency = 1
+    })
+
+    local FirstTab = false
+    local Window = {}
+
+    function Window:CloseBtn()
+        ScreenGui:Destroy()
+    end
+
+    function Window:MinimizeBtn()
+        MainFrame.Visible = not MainFrame.Visible
+    end
+
+    function Window:Dialog(Configs)
+        local DTitle = Configs.Title or "Dialog"
+        local DText = Configs.Text or "This is a Dialog"
+        local DOptions = Configs.Options or {}
+
+        local Frame = Create("Frame", {
+            Parent = MainFrame,
+            Active = true,
+            Size = UDim2.fromOffset(280, 160),
+            Position = UDim2.fromScale(0.5, 0.5),
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            BackgroundColor3 = Theme["Color Hub 2"]
+        }, {
+            Create("UICorner", {
+                CornerRadius = UDim.new(0, 8)
+            }),
+            Create("UIStroke", {
+                Color = Theme["Color Stroke"],
+                Thickness = 1
+            }),
+            Create("TextLabel", {
+                Font = Enum.Font.GothamBold,
+                Size = UDim2.new(1, 0, 0, 20),
+                Text = DTitle,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                TextColor3 = Theme["Color Text"],
+                TextSize = 16,
+                Position = UDim2.fromOffset(15, 5),
+                BackgroundTransparency = 1
+            }),
+            Create("TextLabel", {
+                Font = Enum.Font.GothamMedium,
+                Size = UDim2.new(1, -30, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                Text = DText,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                TextColor3 = Theme["Color Dark Text"],
+                TextSize = 12,
+                Position = UDim2.fromOffset(15, 30),
+                BackgroundTransparency = 1,
+                TextWrapped = true
+            })
+        })
+
+        local ButtonsHolder = Create("Frame", {
+            Parent = Frame,
+            Size = UDim2.fromScale(1, 0.3),
+            Position = UDim2.fromScale(0, 1),
+            AnchorPoint = Vector2.new(0, 1),
+            BackgroundTransparency = 1
+        }, {
+            Create("UIListLayout", {
+                Padding = UDim.new(0, 10),
+                VerticalAlignment = Enum.VerticalAlignment.Center,
+                FillDirection = Enum.FillDirection.Horizontal,
+                HorizontalAlignment = Enum.HorizontalAlignment.Center
+            })
+        })
+
+        local Dialog = {}
+        function Dialog:Button(Configs)
+            local Name = Configs.Name or "Button"
+            local Callback = Configs.Callback or function() end
+
+            local Button = Create("TextButton", {
+                Parent = ButtonsHolder,
+                Size = UDim2.new(0, 80, 0, 30),
+                Text = Name,
+                Font = Enum.Font.GothamBold,
+                TextColor3 = Theme["Color Text"],
+                TextSize = 12,
+                BackgroundColor3 = Theme["Color Theme"],
+                BackgroundTransparency = 0.2
+            }, {
+                Create("UICorner", {
+                    CornerRadius = UDim.new(0, 6)
+                })
+            })
+
+            Button.Activated:Connect(function()
+                Frame:Destroy()
+                Callback()
+            end)
+        end
+
+        for _, Button in pairs(DOptions) do
+            Dialog:Button(Button)
+        end
+
+        return Dialog
+    end
+
+    function Window:MakeTab(Configs)
+        local TName = Configs.Title or "Tab"
+        local TIcon = Configs.Icon or "rbxassetid://10734965702" -- Icon mặc định là "square"
+
+        local TabSelect = Create("TextButton", {
+            Parent = MainScroll,
+            Size = UDim2.new(1, 0, 0, 28),
+            BackgroundTransparency = 0.1,
+            BackgroundColor3 = Theme["Color Hub 2"],
+            Text = ""
+        }, {
+            Create("UICorner", {
+                CornerRadius = UDim.new(0, 6)
+            })
+        })
+
+        local LabelIcon = Create("ImageLabel", {
+            Parent = TabSelect,
+            Position = UDim2.new(0, 8, 0.5, 0),
+            Size = UDim2.new(0, 16, 0, 16),
+            AnchorPoint = Vector2.new(0, 0.5),
+            Image = TIcon,
+            BackgroundTransparency = 1,
+            ImageTransparency = FirstTab and 0.3 or 0
+        })
+
+        local LabelTitle = Create("TextLabel", {
+            Parent = TabSelect,
+            Size = UDim2.new(1, -30, 1, 0),
+            Position = UDim2.fromOffset(30, 0),
+            BackgroundTransparency = 1,
+            Font = Enum.Font.GothamMedium,
+            Text = TName,
+            TextColor3 = Theme["Color Text"],
+            TextSize = 12,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            TextTransparency = FirstTab and 0.3 or 0
+        })
+
+        local Selected = Create("Frame", {
+            Parent = TabSelect,
+            Size = FirstTab and UDim2.new(0, 4, 0, 4) or UDim2.new(0, 4, 0, 16),
+            Position = UDim2.new(0, 1, 0.5, 0),
+            AnchorPoint = Vector2.new(0, 0.5),
+            BackgroundColor3 = Theme["Color Theme"],
+            BackgroundTransparency = FirstTab and 1 or 0
+        }, {
+            Create("UICorner", {
+                CornerRadius = UDim.new(0.5, 0)
+            })
+        })
+
+        local Container = Create("ScrollingFrame", {
+            Size = UDim2.new(1, 0, 1, 0),
+            Position = UDim2.new(0, 0, 0, 0),
+            ScrollBarThickness = 2,
+            BackgroundTransparency = 1,
+            ScrollBarImageColor3 = Theme["Color Theme"],
+            AutomaticCanvasSize = Enum.AutomaticSize.Y,
+            ScrollingDirection = Enum.ScrollingDirection.Y,
+            BorderSizePixel = 0,
+            CanvasSize = UDim2.new(0, 0, 0, 0)
+        }, {
+            Create("UIPadding", {
+                PaddingLeft = UDim.new(0, 10),
+                PaddingRight = UDim.new(0, 10),
+                PaddingTop = UDim.new(0, 10),
+                PaddingBottom = UDim.new(0, 10)
+            }),
+            Create("UIListLayout", {
+                Padding = UDim.new(0, 8)
+            })
+        })
+
+        if not FirstTab then
+            Container.Parent = Containers
+        end
+
+        local Tab = {}
+        function Tab:Enable()
+            for _, frame in pairs(Containers:GetChildren()) do
+                if frame:IsA("ScrollingFrame") and frame ~= Container then
+                    frame.Parent = nil
+                end
+            end
+            Container.Parent = Containers
+            CreateTween({LabelTitle, "TextTransparency", 0, 0.3})
+            CreateTween({LabelIcon, "ImageTransparency", 0, 0.3})
+            CreateTween({Selected, "Size", UDim2.new(0, 4, 0, 16), 0.3})
+            CreateTween({Selected, "BackgroundTransparency", 0, 0.3})
+        end
+
+        function Tab:Disable()
+            Container.Parent = nil
+            CreateTween({LabelTitle, "TextTransparency", 0.3, 0.3})
+            CreateTween({LabelIcon, "ImageTransparency", 0.3, 0.3})
+            CreateTween({Selected, "Size", UDim2.new(0, 4, 0, 4), 0.3})
+            CreateTween({Selected, "BackgroundTransparency", 1, 0.3})
+        end
+
+        TabSelect.Activated:Connect(Tab.Enable)
+        FirstTab = true
+        table.insert(NovaUI.Tabs, {func = Tab, Cont = Container})
+
+        function Tab:AddSection(Configs)
+            local SectionName = Configs or "Section"
+
+            local SectionFrame = Create("Frame", {
+                Parent = Container,
+                Size = UDim2.new(1, 0, 0, 24),
+                BackgroundTransparency = 1
+            }, {
+                Create("TextLabel", {
+                    Font = Enum.Font.GothamBold,
+                    Text = SectionName,
+                    TextColor3 = Theme["Color Text"],
+                    Size = UDim2.new(1, -20, 1, 0),
+                    Position = UDim2.new(0, 5, 0, 0),
+                    BackgroundTransparency = 1,
+                    TextSize = 16,
+                    TextXAlignment = Enum.TextXAlignment.Left
+                })
+            })
+
+            local Section = {}
+            function Section:Set(New)
+                SectionFrame.TextLabel.Text = New
+            end
+            return Section
+        end
+
+        function Tab:AddParagraph(Configs)
+            local PName = Configs.Title or "Paragraph"
+            local PDesc = Configs.Text or ""
+
+            local Frame = Create("Frame", {
+                Parent = Container,
+                Size = UDim2.new(1, 0, 0, 50),
+                BackgroundTransparency = 1
+            }, {
+                Create("TextLabel", {
+                    Font = Enum.Font.GothamBold,
+                    Text = PName,
+                    TextColor3 = Theme["Color Text"],
+                    Size = UDim2.new(1, -20, 0, 20),
+                    Position = UDim2.new(0, 5, 0, 0),
+                    BackgroundTransparency = 1,
+                    TextSize = 14,
+                    TextXAlignment = Enum.TextXAlignment.Left
+                }),
+                Create("TextLabel", {
+                    Font = Enum.Font.Gotham,
+                    Text = PDesc,
+                    TextColor3 = Theme["Color Dark Text"],
+                    Size = UDim2.new(1, -20, 0, 30),
+                    Position = UDim2.new(0, 5, 0, 20),
+                    BackgroundTransparency = 1,
+                    TextSize = 12,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextWrapped = true,
+                    AutomaticSize = Enum.AutomaticSize.Y
+                })
+            })
+
+            local Paragraph = {}
+            function Paragraph:SetTitle(Val)
+                Frame:GetChildren()[1].Text = Val
+            end
+            function Paragraph:SetDesc(Val)
+                Frame:GetChildren()[2].Text = Val
+            end
+            return Paragraph
+        end
+
+        function Tab:AddButton(Configs)
+            local BName = Configs.Title or "Button"
+            local BDescription = Configs.Desc or ""
+            local Callback = Configs.Callback or function() end
+
+            local Button = Create("TextButton", {
+                Parent = Container,
+                Size = UDim2.new(1, -20, 0, 50),
+                BackgroundColor3 = Theme["Color Hub 2"],
+                BackgroundTransparency = 0.1,
+                Text = ""
+            }, {
+                Create("UICorner", {
+                    CornerRadius = UDim.new(0, 6)
+                }),
+                Create("TextLabel", {
+                    Font = Enum.Font.GothamBold,
+                    Text = BName,
+                    TextColor3 = Theme["Color Text"],
+                    Size = UDim2.new(1, -30, 0, 20),
+                    Position = UDim2.new(0, 10, 0, 5),
+                    BackgroundTransparency = 1,
+                    TextSize = 14,
+                    TextXAlignment = Enum.TextXAlignment.Left
+                }),
+                Create("TextLabel", {
+                    Font = Enum.Font.Gotham,
+                    Text = BDescription,
+                    TextColor3 = Theme["Color Dark Text"],
+                    Size = UDim2.new(1, -30, 0, 20),
+                    Position = UDim2.new(0, 10, 0, 25),
+                    BackgroundTransparency = 1,
+                    TextSize = 12,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextWrapped = true
+                }),
+                Create("ImageLabel", {
+                    Size = UDim2.new(0, 16, 0, 16),
+                    Position = UDim2.new(1, -10, 0.5, 0),
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    BackgroundTransparency = 1,
+                    Image = "rbxassetid://10734991437" -- Icon "chevron-right"
+                })
+            })
+
+            Button.Activated:Connect(Callback)
+            local ButtonObj = {}
+            function ButtonObj:Set(Val1, Val2)
+                if Val1 and Val2 then
+                    Button:GetChildren()[1].Text = Val1
+                    Button:GetChildren()[2].Text = Val2
+                elseif Val1 then
+                    Button:GetChildren()[1].Text = Val1
+                end
+            end
+            return ButtonObj
+        end
+
+        function Tab:AddToggle(Configs)
+            local TName = Configs.Title or "Toggle"
+            local TDesc = Configs.Desc or ""
+            local Default = Configs.Default or false
+            local Callback = Configs.Callback or function() end
+
+            local Button = Create("TextButton", {
+                Parent = Container,
+                Size = UDim2.new(1, -20, 0, 50),
+                BackgroundColor3 = Theme["Color Hub 2"],
+                BackgroundTransparency = 0.1,
+                Text = ""
+            }, {
+                Create("UICorner", {
+                    CornerRadius = UDim.new(0, 6)
+                }),
+                Create("TextLabel", {
+                    Font = Enum.Font.GothamBold,
+                    Text = TName,
+                    TextColor3 = Theme["Color Text"],
+                    Size = UDim2.new(1, -50, 0, 20),
+                    Position = UDim2.new(0, 10, 0, 5),
+                    BackgroundTransparency = 1,
+                    TextSize = 14,
+                    TextXAlignment = Enum.TextXAlignment.Left
+                }),
+                Create("TextLabel", {
+                    Font = Enum.Font.Gotham,
+                    Text = TDesc,
+                    TextColor3 = Theme["Color Dark Text"],
+                    Size = UDim2.new(1, -50, 0, 20),
+                    Position = UDim2.new(0, 10, 0, 25),
+                    BackgroundTransparency = 1,
+                    TextSize = 12,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextWrapped = true
+                })
+            })
+
+            local ToggleHolder = Create("Frame", {
+                Parent = Button,
+                Size = UDim2.new(0, 40, 0, 20),
+                Position = UDim2.new(1, -10, 0.5, 0),
+                AnchorPoint = Vector2.new(1, 0.5),
+                BackgroundColor3 = Theme["Color Stroke"]
+            }, {
+                Create("UICorner", {
+                    CornerRadius = UDim.new(0.5, 0)
+                })
+            })
+
+            local Toggle = Create("Frame", {
+                Parent = ToggleHolder,
+                Size = UDim2.new(0, 14, 0, 14),
+                Position = Default and UDim2.new(1, -3, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
+                AnchorPoint = Vector2.new(Default and 1 or 0, 0.5),
+                BackgroundColor3 = Theme["Color Theme"],
+                BackgroundTransparency = Default and 0 or 0.8
+            }, {
+                Create("UICorner", {
+                    CornerRadius = UDim.new(0.5, 0)
+                })
+            })
+
+            local ToggleState = Default
+            Button.Activated:Connect(function()
+                ToggleState = not ToggleState
+                if ToggleState then
+                    CreateTween({Toggle, "Position", UDim2.new(1, -3, 0.5, 0), 0.3})
+                    CreateTween({Toggle, "BackgroundTransparency", 0, 0.3})
+                    CreateTween({Toggle, "AnchorPoint", Vector2.new(1, 0.5), 0.3})
+                else
+                    CreateTween({Toggle, "Position", UDim2.new(0, 3, 0.5, 0), 0.3})
+                    CreateTween({Toggle, "BackgroundTransparency", 0.8, 0.3})
+                    CreateTween({Toggle, "AnchorPoint", Vector2.new(0, 0.5), 0.3})
+                end
+                Callback(ToggleState)
+            end)
+
+            local ToggleObj = {}
+            function ToggleObj:Set(Val)
+                if type(Val) == "boolean" then
+                    ToggleState = Val
+                    if ToggleState then
+                        CreateTween({Toggle, "Position", UDim2.new(1, -3, 0.5, 0), 0.3})
+                        CreateTween({Toggle, "BackgroundTransparency", 0, 0.3})
+                        CreateTween({Toggle, "AnchorPoint", Vector2.new(1, 0.5), 0.3})
+                    else
+                        CreateTween({Toggle, "Position", UDim2.new(0, 3, 0.5, 0), 0.3})
+                        CreateTween({Toggle, "BackgroundTransparency", 0.8, 0.3})
+                        CreateTween({Toggle, "AnchorPoint", Vector2.new(0, 0.5), 0.3})
+                    end
+                    Callback(ToggleState)
+                end
+            end
+            return ToggleObj
+        end
+
+        function Tab:AddDropdown(Configs)
+            local DName = Configs.Title or "Dropdown"
+            local DDesc = Configs.Desc or ""
+            local DOptions = Configs.Options or {}
+            local Default = Configs.Default or DOptions[1] or "..."
+            local Callback = Configs.Callback or function() end
+
+            local Button = Create("TextButton", {
+                Parent = Container,
+                Size = UDim2.new(1, -20, 0, 50),
+                BackgroundColor3 = Theme["Color Hub 2"],
+                BackgroundTransparency = 0.1,
+                Text = ""
+            }, {
+                Create("UICorner", {
+                    CornerRadius = UDim.new(0, 6)
+                }),
+                Create("TextLabel", {
+                    Font = Enum.Font.GothamBold,
+                    Text = DName,
+                    TextColor3 = Theme["Color Text"],
+                    Size = UDim2.new(1, -180, 0, 20),
+                    Position = UDim2.new(0, 10, 0, 5),
+                    BackgroundTransparency = 1,
+                    TextSize = 14,
+                    TextXAlignment = Enum.TextXAlignment.Left
+                }),
+                Create("TextLabel", {
+                    Font = Enum.Font.Gotham,
+                    Text = DDesc,
+                    TextColor3 = Theme["Color Dark Text"],
+                    Size = UDim2.new(1, -180, 0, 20),
+                    Position = UDim2.new(0, 10, 0, 25),
+                    BackgroundTransparency = 1,
+                    TextSize = 12,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextWrapped = true
+                })
+            })
+
+            local SelectedFrame = Create("Frame", {
+                Parent = Button,
+                Size = UDim2.new(0, 160, 0, 20),
+                Position = UDim2.new(1, -10, 0.5, 0),
+                AnchorPoint = Vector2.new(1, 0.5),
+                BackgroundColor3 = Theme["Color Stroke"]
+            }, {
+                Create("UICorner", {
+                    CornerRadius = UDim.new(0, 6)
+                })
+            })
+
+            local ActiveLabel = Create("TextLabel", {
+                Parent = SelectedFrame,
+                Size = UDim2.new(0.85, 0, 0.85, 0),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                Position = UDim2.new(0.5, 0, 0.5, 0),
+                BackgroundTransparency = 1,
+                Font = Enum.Font.GothamBold,
+                TextScaled = true,
+                TextColor3 = Theme["Color Text"],
+                Text = Default
+            })
+
+            local Arrow = Create("ImageLabel", {
+                Parent = SelectedFrame,
+                Size = UDim2.new(0, 16, 0, 16),
+                Position = UDim2.new(0, -5, 0.5, 0),
+                AnchorPoint = Vector2.new(1, 0.5),
+                Image = "rbxassetid://10734991523", -- Icon "chevron-up"
+                BackgroundTransparency = 1
+            })
+
+            local DropFrame = Create("Frame", {
+                Parent = MainFrame,
+                Size = UDim2.new(0, 160, 0, 0),
+                BackgroundColor3 = Theme["Color Hub 2"],
+                AnchorPoint = Vector2.new(0, 1),
+                ClipsDescendants = true,
+                Visible = false
+            }, {
+                Create("UICorner", {
+                    CornerRadius = UDim.new(0, 6)
+                }),
+                Create("UIStroke", {
+                    Color = Theme["Color Stroke"],
+                    Thickness = 1
+                })
+            })
+
+            local ScrollFrame = Create("ScrollingFrame", {
+                Parent = DropFrame,
+                Size = UDim2.new(1, 0, 1, 0),
+                ScrollBarThickness = 2,
+                BackgroundTransparency = 1,
+                ScrollBarImageColor3 = Theme["Color Theme"],
+                AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                ScrollingDirection = Enum.ScrollingDirection.Y,
+                BorderSizePixel = 0
+            }, {
+                Create("UIPadding", {
+                    PaddingLeft = UDim.new(0, 8),
+                    PaddingRight = UDim.new(0, 8),
+                    PaddingTop = UDim.new(0, 5),
+                    PaddingBottom = UDim.new(0, 5)
+                }),
+                Create("UIListLayout", {
+                    Padding = UDim.new(0, 4)
+                })
+            })
+
+            local Options = {}
+            for _, option in pairs(DOptions) do
+                local OptionButton = Create("TextButton", {
+                    Parent = ScrollFrame,
+                    Size = UDim2.new(1, 0, 0, 24),
+                    BackgroundTransparency = 0.1,
+                    BackgroundColor3 = Theme["Color Hub 2"],
+                    Text = tostring(option),
+                    Font = Enum.Font.GothamBold,
+                    TextColor3 = Theme["Color Text"],
+                    TextSize = 12,
+                    TextXAlignment = Enum.TextXAlignment.Left
+                }, {
+                    Create("UICorner", {
+                        CornerRadius = UDim.new(0, 4)
+                    })
+                })
+
+                OptionButton.Activated:Connect(function()
+                    ActiveLabel.Text = tostring(option)
+                    DropFrame.Visible = false
+                    CreateTween({Arrow, "Rotation", 0, 0.2})
+                    Callback(option)
+                end)
+            end
+
+            local function UpdatePosition()
+                local FramePos = SelectedFrame.AbsolutePosition
+                local ScreenSize = ScreenGui.AbsoluteSize
+                local ClampX = math.clamp(FramePos.X, 0, ScreenSize.X - DropFrame.Size.X.Offset)
+                local ClampY = FramePos.Y + SelectedFrame.AbsoluteSize.Y
+                DropFrame.Position = UDim2.fromOffset(ClampX, ClampY)
+            end
+
+            Button.Activated:Connect(function()
+                DropFrame.Visible = not DropFrame.Visible
+                if DropFrame.Visible then
+                    CreateTween({DropFrame, "Size", UDim2.new(0, 160, 0, math.min(#DOptions * 24 + 10, 120)), 0.2})
+                    CreateTween({Arrow, "Rotation", 180, 0.2})
+                else
+                    CreateTween({DropFrame, "Size", UDim2.new(0, 160, 0, 0), 0.2})
+                    CreateTween({Arrow, "Rotation", 0, 0.2})
+                end
+                UpdatePosition()
+            end)
+
+            SelectedFrame:GetPropertyChangedSignal("AbsolutePosition"):Connect(UpdatePosition)
+
+            local Dropdown = {}
+            function Dropdown:Set(Val)
+                ActiveLabel.Text = Val
+                Callback(Val)
+            end
+            return Dropdown
+        end
+
+        return Tab
+    end
+
+    CloseButton.Activated:Connect(Window.CloseBtn)
+    MinimizeButton.Activated:Connect(Window.MinimizeBtn)
+    return Window
+end
+
+return NovaUI
