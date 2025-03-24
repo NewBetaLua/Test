@@ -102,6 +102,8 @@ end
 
 -- Hàm tạo cửa sổ chính
 function NovaUI:MakeWindow(Configs)
+    print("NovaUI:MakeWindow called") -- Debug: Kiểm tra xem hàm có được gọi không
+
     local Title = Configs.Title or "NovaUI"
     local SubTitle = Configs.SubTitle or "Custom UI"
     local Theme = NovaUI.Themes[Configs.Save and Configs.Save.Theme or "Nova"]
@@ -109,15 +111,18 @@ function NovaUI:MakeWindow(Configs)
     local ScreenGui = Create("ScreenGui", {
         Parent = CoreGui,
         ResetOnSpawn = false,
-        IgnoreGuiInset = true
+        IgnoreGuiInset = true,
+        Enabled = true -- Đảm bảo ScreenGui được bật
     })
+    print("ScreenGui created with Enabled = " .. tostring(ScreenGui.Enabled)) -- Debug: Kiểm tra ScreenGui
 
     local MainFrame = MakeDrag(Create("Frame", {
         Size = UDim2.new(0, NovaUI.Save.UISize[1], 0, NovaUI.Save.UISize[2]),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
-        BackgroundColor3 = Color3.fromRGB(20, 20, 30), -- Sử dụng Color3 thay vì ColorSequence
-        BackgroundTransparency = 0
+        BackgroundColor3 = Color3.fromRGB(20, 20, 30),
+        BackgroundTransparency = 0,
+        Visible = true -- Đảm bảo MainFrame hiển thị
     }, {
         Create("UIGradient", {
             Color = Theme["Color Hub 1"],
@@ -131,6 +136,7 @@ function NovaUI:MakeWindow(Configs)
             Thickness = 1
         })
     }))
+    print("MainFrame created with Visible = " .. tostring(MainFrame.Visible)) -- Debug: Kiểm tra MainFrame
 
     local TitleBar = Create("Frame", {
         Parent = MainFrame,
@@ -205,13 +211,16 @@ function NovaUI:MakeWindow(Configs)
 
     function Window:CloseBtn()
         ScreenGui:Destroy()
+        print("Window closed") -- Debug: Kiểm tra khi đóng
     end
 
     function Window:MinimizeBtn()
         MainFrame.Visible = not MainFrame.Visible
+        print("Window minimized, Visible = " .. tostring(MainFrame.Visible)) -- Debug: Kiểm tra khi thu nhỏ
     end
 
     function Window:Dialog(Configs)
+        print("Window:Dialog called") -- Debug: Kiểm tra dialog
         local DTitle = Configs.Title or "Dialog"
         local DText = Configs.Text or "This is a Dialog"
         local DOptions = Configs.Options or {}
@@ -293,6 +302,7 @@ function NovaUI:MakeWindow(Configs)
             Button.Activated:Connect(function()
                 Frame:Destroy()
                 Callback()
+                print("Dialog button clicked: " .. Name) -- Debug: Kiểm tra khi nhấn nút
             end)
         end
 
@@ -304,6 +314,7 @@ function NovaUI:MakeWindow(Configs)
     end
 
     function Window:MakeTab(Configs)
+        print("Window:MakeTab called with Title = " .. (Configs.Title or "Tab")) -- Debug: Kiểm tra tab
         local TName = Configs.Title or "Tab"
         local TIcon = Configs.Icon or "rbxassetid://10734965702" -- Icon mặc định là "square"
 
@@ -379,6 +390,7 @@ function NovaUI:MakeWindow(Configs)
 
         if not FirstTab then
             Container.Parent = Containers
+            print("First tab created and added to Containers") -- Debug: Kiểm tra tab đầu tiên
         end
 
         local Tab = {}
@@ -393,6 +405,7 @@ function NovaUI:MakeWindow(Configs)
             CreateTween({LabelIcon, "ImageTransparency", 0, 0.3})
             CreateTween({Selected, "Size", UDim2.new(0, 4, 0, 16), 0.3})
             CreateTween({Selected, "BackgroundTransparency", 0, 0.3})
+            print("Tab enabled: " .. TName) -- Debug: Kiểm tra khi tab được chọn
         end
 
         function Tab:Disable()
@@ -401,6 +414,7 @@ function NovaUI:MakeWindow(Configs)
             CreateTween({LabelIcon, "ImageTransparency", 0.3, 0.3})
             CreateTween({Selected, "Size", UDim2.new(0, 4, 0, 4), 0.3})
             CreateTween({Selected, "BackgroundTransparency", 1, 0.3})
+            print("Tab disabled: " .. TName) -- Debug: Kiểm tra khi tab bị bỏ chọn
         end
 
         TabSelect.Activated:Connect(Tab.Enable)
@@ -408,6 +422,7 @@ function NovaUI:MakeWindow(Configs)
         table.insert(NovaUI.Tabs, {func = Tab, Cont = Container})
 
         function Tab:AddSection(Configs)
+            print("Tab:AddSection called") -- Debug: Kiểm tra section
             local SectionName = Configs or "Section"
 
             local SectionFrame = Create("Frame", {
@@ -435,6 +450,7 @@ function NovaUI:MakeWindow(Configs)
         end
 
         function Tab:AddParagraph(Configs)
+            print("Tab:AddParagraph called") -- Debug: Kiểm tra paragraph
             local PName = Configs.Title or "Paragraph"
             local PDesc = Configs.Text or ""
 
@@ -478,6 +494,7 @@ function NovaUI:MakeWindow(Configs)
         end
 
         function Tab:AddButton(Configs)
+            print("Tab:AddButton called") -- Debug: Kiểm tra button
             local BName = Configs.Title or "Button"
             local BDescription = Configs.Desc or ""
             local Callback = Configs.Callback or function() end
@@ -536,6 +553,7 @@ function NovaUI:MakeWindow(Configs)
         end
 
         function Tab:AddToggle(Configs)
+            print("Tab:AddToggle called") -- Debug: Kiểm tra toggle
             local TName = Configs.Title or "Toggle"
             local TDesc = Configs.Desc or ""
             local Default = Configs.Default or false
@@ -612,6 +630,7 @@ function NovaUI:MakeWindow(Configs)
                     CreateTween({Toggle, "AnchorPoint", Vector2.new(0, 0.5), 0.3})
                 end
                 Callback(ToggleState)
+                print("Toggle state changed to: " .. tostring(ToggleState)) -- Debug: Kiểm tra toggle
             end)
 
             local ToggleObj = {}
@@ -634,6 +653,7 @@ function NovaUI:MakeWindow(Configs)
         end
 
         function Tab:AddDropdown(Configs)
+            print("Tab:AddDropdown called") -- Debug: Kiểm tra dropdown
             local DName = Configs.Title or "Dropdown"
             local DDesc = Configs.Desc or ""
             local DOptions = Configs.Options or {}
@@ -767,6 +787,7 @@ function NovaUI:MakeWindow(Configs)
                     DropFrame.Visible = false
                     CreateTween({Arrow, "Rotation", 0, 0.2})
                     Callback(option)
+                    print("Dropdown selected: " .. tostring(option)) -- Debug: Kiểm tra dropdown
                 end)
             end
 
@@ -788,6 +809,7 @@ function NovaUI:MakeWindow(Configs)
                     CreateTween({Arrow, "Rotation", 0, 0.2})
                 end
                 UpdatePosition()
+                print("Dropdown toggled, Visible = " .. tostring(DropFrame.Visible)) -- Debug: Kiểm tra dropdown
             end)
 
             SelectedFrame:GetPropertyChangedSignal("AbsolutePosition"):Connect(UpdatePosition)
