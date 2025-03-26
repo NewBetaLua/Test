@@ -7,25 +7,27 @@ local Player = Players.LocalPlayer
 
 -- Themes
 local Themes = {
-    Dark = {
-        Background = Color3.fromRGB(30, 30, 30),
-        Secondary = Color3.fromRGB(40, 40, 40),
-        Accent = Color3.fromRGB(0, 122, 255),
-        Text = Color3.fromRGB(220, 220, 220),
-        SubText = Color3.fromRGB(150, 150, 150),
+    FluentDark = {
+        Background = Color3.fromRGB(28, 28, 28),
+        Secondary = Color3.fromRGB(38, 38, 38),
+        Accent = Color3.fromRGB(0, 120, 215),
+        Text = Color3.fromRGB(230, 230, 230),
+        SubText = Color3.fromRGB(160, 160, 160),
         Border = Color3.fromRGB(50, 50, 50),
         Shadow = Color3.fromRGB(0, 0, 0),
-        Highlight = Color3.fromRGB(50, 50, 50)
+        Highlight = Color3.fromRGB(45, 45, 45),
+        Acrylic = Color3.fromRGB(40, 40, 40)
     },
-    Light = {
-        Background = Color3.fromRGB(240, 240, 240),
-        Secondary = Color3.fromRGB(220, 220, 220),
+    FluentLight = {
+        Background = Color3.fromRGB(245, 245, 245),
+        Secondary = Color3.fromRGB(230, 230, 230),
         Accent = Color3.fromRGB(0, 103, 192),
         Text = Color3.fromRGB(30, 30, 30),
         SubText = Color3.fromRGB(100, 100, 100),
-        Border = Color3.fromRGB(180, 180, 180),
+        Border = Color3.fromRGB(200, 200, 200),
         Shadow = Color3.fromRGB(150, 150, 150),
-        Highlight = Color3.fromRGB(200, 200, 200)
+        Highlight = Color3.fromRGB(220, 220, 220),
+        Acrylic = Color3.fromRGB(255, 255, 255)
     },
     Neon = {
         Background = Color3.fromRGB(20, 20, 30),
@@ -35,11 +37,34 @@ local Themes = {
         SubText = Color3.fromRGB(120, 120, 150),
         Border = Color3.fromRGB(40, 40, 50),
         Shadow = Color3.fromRGB(0, 0, 20),
-        Highlight = Color3.fromRGB(40, 40, 60)
+        Highlight = Color3.fromRGB(40, 40, 60),
+        Acrylic = Color3.fromRGB(30, 30, 50)
+    },
+    Glass = {
+        Background = Color3.fromRGB(10, 10, 20),
+        Secondary = Color3.fromRGB(20, 20, 30),
+        Accent = Color3.fromRGB(255, 255, 255),
+        Text = Color3.fromRGB(255, 255, 255),
+        SubText = Color3.fromRGB(180, 180, 180),
+        Border = Color3.fromRGB(50, 50, 60),
+        Shadow = Color3.fromRGB(0, 0, 10),
+        Highlight = Color3.fromRGB(30, 30, 40),
+        Acrylic = Color3.fromRGB(20, 20, 40)
+    },
+    Cyberpunk = {
+        Background = Color3.fromRGB(15, 15, 25),
+        Secondary = Color3.fromRGB(25, 25, 35),
+        Accent = Color3.fromRGB(255, 0, 255),
+        Text = Color3.fromRGB(255, 255, 255),
+        SubText = Color3.fromRGB(150, 150, 150),
+        Border = Color3.fromRGB(40, 40, 50),
+        Shadow = Color3.fromRGB(0, 0, 15),
+        Highlight = Color3.fromRGB(35, 35, 45),
+        Acrylic = Color3.fromRGB(25, 25, 45)
     }
 }
 
-local CurrentTheme = Themes.Dark
+local CurrentTheme = Themes.FluentDark
 
 -- Utility Functions
 local function Create(class, parent, properties)
@@ -63,32 +88,115 @@ local function AddShadow(frame)
         Size = UDim2.new(1, 12, 1, 12),
         Position = UDim2.new(0, -6, 0, -6),
         BackgroundColor3 = CurrentTheme.Shadow,
-        BackgroundTransparency = 0.6,
+        BackgroundTransparency = 0.5,
         BorderSizePixel = 0,
         ZIndex = frame.ZIndex - 1
     })
-    Create("UICorner", Shadow, {CornerRadius = UDim.new(0, 10)})
+    Create("UICorner", Shadow, {CornerRadius = UDim.new(0, 12)})
     return Shadow
 end
 
-local function AddGlow(frame)
-    local Glow = Create("Frame", frame, {
-        Size = UDim2.new(1, 20, 1, 20),
-        Position = UDim2.new(0, -10, 0, -10),
-        BackgroundColor3 = CurrentTheme.Accent,
-        BackgroundTransparency = 0.9,
+local function AddAcrylic(frame)
+    local Acrylic = Create("Frame", frame, {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundColor3 = CurrentTheme.Acrylic,
+        BackgroundTransparency = 0.3,
         BorderSizePixel = 0,
         ZIndex = frame.ZIndex - 1
     })
-    Create("UICorner", Glow, {CornerRadius = UDim.new(0, 12)})
-    return Glow
+    Create("UICorner", Acrylic, {CornerRadius = UDim.new(0, 12)})
+    return Acrylic
+end
+
+-- Key System
+local function CreateKeySystem(callback)
+    local KeyScreen = Create("ScreenGui", game.CoreGui, {
+        Name = "KeySystem",
+        ResetOnSpawn = false
+    })
+
+    local KeyFrame = Create("Frame", KeyScreen, {
+        Size = UDim2.new(0, 400, 0, 250),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundColor3 = CurrentTheme.Background,
+        BackgroundTransparency = 0.1,
+        BorderSizePixel = 0
+    })
+    Create("UICorner", KeyFrame, {CornerRadius = UDim.new(0, 12)})
+    AddShadow(KeyFrame)
+    AddAcrylic(KeyFrame)
+
+    local Title = Create("TextLabel", KeyFrame, {
+        Size = UDim2.new(1, 0, 0, 40),
+        BackgroundTransparency = 1,
+        Text = "Enter Key",
+        TextColor3 = CurrentTheme.Text,
+        TextSize = 20,
+        Font = Enum.Font.SourceSansBold,
+        TextXAlignment = Enum.TextXAlignment.Center
+    })
+
+    local KeyInput = Create("TextBox", KeyFrame, {
+        Size = UDim2.new(0, 300, 0, 40),
+        Position = UDim2.new(0.5, 0, 0, 90),
+        AnchorPoint = Vector2.new(0.5, 0),
+        BackgroundColor3 = CurrentTheme.Secondary,
+        BackgroundTransparency = 0.2,
+        Text = "",
+        PlaceholderText = "Enter your key here...",
+        TextColor3 = CurrentTheme.Text,
+        TextSize = 16,
+        Font = Enum.Font.SourceSansSemibold
+    })
+    Create("UICorner", KeyInput, {CornerRadius = UDim.new(0, 8)})
+    AddShadow(KeyInput)
+
+    local SubmitButton = Create("TextButton", KeyFrame, {
+        Size = UDim2.new(0, 150, 0, 40),
+        Position = UDim2.new(0.5, 0, 0, 150),
+        AnchorPoint = Vector2.new(0.5, 0),
+        BackgroundColor3 = CurrentTheme.Secondary,
+        BackgroundTransparency = 0.2,
+        Text = "Submit",
+        TextColor3 = CurrentTheme.Text,
+        TextSize = 16,
+        Font = Enum.Font.SourceSansSemibold
+    })
+    Create("UICorner", SubmitButton, {CornerRadius = UDim.new(0, 8)})
+    AddShadow(SubmitButton)
+
+    SubmitButton.MouseButton1Click:Connect(function()
+        local key = KeyInput.Text
+        if callback(key) then
+            KeyScreen:Destroy()
+        else
+            KeyInput.Text = ""
+            KeyInput.PlaceholderText = "Invalid key! Try again..."
+            KeyInput.PlaceholderColor3 = Color3.fromRGB(255, 0, 0)
+        end
+    end)
+    SubmitButton.MouseEnter:Connect(function()
+        Tween(SubmitButton, "BackgroundColor3", CurrentTheme.Accent, 0.2)
+    end)
+    SubmitButton.MouseLeave:Connect(function()
+        Tween(SubmitButton, "BackgroundColor3", CurrentTheme.Secondary, 0.2)
+    end)
+
+    KeyInput.Focused:Connect(function()
+        Tween(KeyInput, "BackgroundColor3", CurrentTheme.Border, 0.2)
+    end)
+    KeyInput.FocusLost:Connect(function()
+        Tween(KeyInput, "BackgroundColor3", CurrentTheme.Secondary, 0.2)
+    end)
 end
 
 -- Main UI
 function NovaUI:CreateWindow(options)
     local title = options.Title or "NovaUI"
-    local theme = options.Theme or "Dark"
-    CurrentTheme = Themes[theme] or Themes.Dark
+    local theme = options.Theme or "FluentDark"
+    local key = options.Key or nil
+    CurrentTheme = Themes[theme] or Themes.FluentDark
 
     local ScreenGui = Create("ScreenGui", game.CoreGui, {
         Name = "NovaUI",
@@ -96,63 +204,89 @@ function NovaUI:CreateWindow(options)
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     })
 
+    -- Key System
+    if key then
+        CreateKeySystem(function(inputKey)
+            if inputKey == key then
+                return true
+            end
+            return false
+        end)
+    end
+
+    -- Toggle Button (ImageButton)
+    local ToggleButton = Create("ImageButton", ScreenGui, {
+        Size = UDim2.new(0, 50, 0, 50),
+        Position = UDim2.new(0, 20, 0, 20),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://6022668899",
+        ImageColor3 = CurrentTheme.Text,
+        ZIndex = 100
+    })
+    AddShadow(ToggleButton)
+
     local MainFrame = Create("Frame", ScreenGui, {
-        Size = UDim2.new(0, 650, 0, 500),
+        Size = UDim2.new(0, 750, 0, 600),
         Position = UDim2.new(0.5, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         BackgroundColor3 = CurrentTheme.Background,
+        BackgroundTransparency = 0.1,
         BorderSizePixel = 0,
-        ClipsDescendants = true
+        ClipsDescendants = true,
+        Visible = false
     })
-    Create("UICorner", MainFrame, {CornerRadius = UDim.new(0, 10)})
+    Create("UICorner", MainFrame, {CornerRadius = UDim.new(0, 12)})
     AddShadow(MainFrame)
-    AddGlow(MainFrame)
+    AddAcrylic(MainFrame)
 
     local TitleBar = Create("Frame", MainFrame, {
-        Size = UDim2.new(1, 0, 0, 40),
+        Size = UDim2.new(1, 0, 0, 50),
         BackgroundColor3 = CurrentTheme.Secondary,
+        BackgroundTransparency = 0.2,
         BorderSizePixel = 0
     })
-    Create("UICorner", TitleBar, {CornerRadius = UDim.new(0, 10)})
+    Create("UICorner", TitleBar, {CornerRadius = UDim.new(0, 12)})
 
     local TitleLabel = Create("TextLabel", TitleBar, {
-        Size = UDim2.new(1, -80, 1, 0),
+        Size = UDim2.new(1, -90, 1, 0),
         Position = UDim2.new(0, 15, 0, 0),
         BackgroundTransparency = 1,
         Text = title,
         TextColor3 = CurrentTheme.Text,
-        TextSize = 18,
+        TextSize = 22,
         Font = Enum.Font.SourceSansBold,
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
     local CloseButton = Create("TextButton", TitleBar, {
-        Size = UDim2.new(0, 30, 0, 30),
+        Size = UDim2.new(0, 40, 0, 40),
         Position = UDim2.new(1, -15, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         BackgroundColor3 = CurrentTheme.Secondary,
+        BackgroundTransparency = 0.2,
         Text = "✕",
         TextColor3 = CurrentTheme.SubText,
-        TextSize = 16,
+        TextSize = 18,
         Font = Enum.Font.SourceSansBold
     })
-    Create("UICorner", CloseButton, {CornerRadius = UDim.new(0, 6)})
+    Create("UICorner", CloseButton, {CornerRadius = UDim.new(0, 8)})
 
     local MinimizeButton = Create("TextButton", TitleBar, {
-        Size = UDim2.new(0, 30, 0, 30),
-        Position = UDim2.new(1, -50, 0.5, 0),
+        Size = UDim2.new(0, 40, 0, 40),
+        Position = UDim2.new(1, -60, 0.5, 0),
         AnchorPoint = Vector2.new(0.5, 0.5),
         BackgroundColor3 = CurrentTheme.Secondary,
+        BackgroundTransparency = 0.2,
         Text = "—",
         TextColor3 = CurrentTheme.SubText,
-        TextSize = 16,
+        TextSize = 18,
         Font = Enum.Font.SourceSansBold
     })
-    Create("UICorner", MinimizeButton, {CornerRadius = UDim.new(0, 6)})
+    Create("UICorner", MinimizeButton, {CornerRadius = UDim.new(0, 8)})
 
     local TabHolder = Create("ScrollingFrame", MainFrame, {
-        Size = UDim2.new(0, 170, 1, -50),
-        Position = UDim2.new(0, 5, 0, 45),
+        Size = UDim2.new(0, 200, 1, -60),
+        Position = UDim2.new(0, 5, 0, 55),
         BackgroundTransparency = 1,
         ScrollBarThickness = 2,
         ScrollBarImageColor3 = CurrentTheme.Accent,
@@ -163,13 +297,39 @@ function NovaUI:CreateWindow(options)
     Create("UIPadding", TabHolder, {PaddingTop = UDim.new(0, 5), PaddingLeft = UDim.new(0, 5), PaddingRight = UDim.new(0, 5)})
 
     local ContentHolder = Create("Frame", MainFrame, {
-        Size = UDim2.new(1, -180, 1, -50),
-        Position = UDim2.new(0, 180, 0, 45),
+        Size = UDim2.new(1, -210, 1, -60),
+        Position = UDim2.new(0, 210, 0, 55),
         BackgroundTransparency = 1
     })
 
-    local WindowData = {Tabs = {}, Callbacks = {}}
+    local NotificationHolder = Create("Frame", ScreenGui, {
+        Size = UDim2.new(0, 300, 0, 400),
+        Position = UDim2.new(1, -310, 1, -410),
+        BackgroundTransparency = 1
+    })
+    Create("UIListLayout", NotificationHolder, {Padding = UDim.new(0, 10), SortOrder = Enum.SortOrder.LayoutOrder})
+
+    local WindowData = {Tabs = {}, Callbacks = {}, Notifications = {}}
     local minimized = false
+    local tabCount = 0
+
+    -- Toggle UI
+    ToggleButton.MouseButton1Click:Connect(function()
+        MainFrame.Visible = not MainFrame.Visible
+        if MainFrame.Visible then
+            Tween(ToggleButton, "ImageColor3", CurrentTheme.Accent, 0.2)
+        else
+            Tween(ToggleButton, "ImageColor3", CurrentTheme.Text, 0.2)
+        end
+    end)
+    ToggleButton.MouseEnter:Connect(function()
+        Tween(ToggleButton, "ImageColor3", CurrentTheme.Accent, 0.2)
+    end)
+    ToggleButton.MouseLeave:Connect(function()
+        if not MainFrame.Visible then
+            Tween(ToggleButton, "ImageColor3", CurrentTheme.Text, 0.2)
+        end
+    end)
 
     -- Dragging
     local dragging, dragInput, dragStart, startPos
@@ -199,7 +359,8 @@ function NovaUI:CreateWindow(options)
 
     -- Close and Minimize
     CloseButton.MouseButton1Click:Connect(function()
-        ScreenGui:Destroy()
+        MainFrame.Visible = false
+        Tween(ToggleButton, "ImageColor3", CurrentTheme.Text, 0.2)
     end)
     CloseButton.MouseEnter:Connect(function()
         Tween(CloseButton, "BackgroundColor3", CurrentTheme.Accent, 0.2)
@@ -210,12 +371,12 @@ function NovaUI:CreateWindow(options)
 
     MinimizeButton.MouseButton1Click:Connect(function()
         if minimized then
-            Tween(MainFrame, "Size", UDim2.new(0, 650, 0, 500), 0.3)
+            Tween(MainFrame, "Size", UDim2.new(0, 750, 0, 600), 0.3)
             ContentHolder.Visible = true
             TabHolder.Visible = true
             MinimizeButton.Text = "—"
         else
-            Tween(MainFrame, "Size", UDim2.new(0, 650, 0, 40), 0.3)
+            Tween(MainFrame, "Size", UDim2.new(0, 750, 0, 50), 0.3)
             ContentHolder.Visible = false
             TabHolder.Visible = false
             MinimizeButton.Text = "□"
@@ -229,12 +390,81 @@ function NovaUI:CreateWindow(options)
         Tween(MinimizeButton, "BackgroundColor3", CurrentTheme.Secondary, 0.2)
     end)
 
+    -- Notification System
+    function WindowData:AddNotification(options)
+        local title = options.Title or "Notification"
+        local message = options.Message or "Message"
+        local duration = options.Duration or 5
+
+        local Notification = Create("Frame", NotificationHolder, {
+            Size = UDim2.new(1, 0, 0, 80),
+            BackgroundColor3 = CurrentTheme.Secondary,
+            BackgroundTransparency = 0.2,
+            BorderSizePixel = 0
+        })
+        Create("UICorner", Notification, {CornerRadius = UDim.new(0, 8)})
+        AddShadow(Notification)
+
+        local TitleLabel = Create("TextLabel", Notification, {
+            Size = UDim2.new(1, -10, 0, 20),
+            Position = UDim2.new(0, 5, 0, 5),
+            BackgroundTransparency = 1,
+            Text = title,
+            TextColor3 = CurrentTheme.Text,
+            TextSize = 16,
+            Font = Enum.Font.SourceSansBold,
+            TextXAlignment = Enum.TextXAlignment.Left
+        })
+
+        local MessageLabel = Create("TextLabel", Notification, {
+            Size = UDim2.new(1, -10, 0, 40),
+            Position = UDim2.new(0, 5, 0, 25),
+            BackgroundTransparency = 1,
+            Text = message,
+            TextColor3 = CurrentTheme.SubText,
+            TextSize = 14,
+            Font = Enum.Font.SourceSans,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            TextWrapped = true
+        })
+
+        local CloseButton = Create("TextButton", Notification, {
+            Size = UDim2.new(0, 20, 0, 20),
+            Position = UDim2.new(1, -25, 0, 5),
+            BackgroundTransparency = 1,
+            Text = "✕",
+            TextColor3 = CurrentTheme.SubText,
+            TextSize = 14,
+            Font = Enum.Font.SourceSansBold
+        })
+
+        CloseButton.MouseButton1Click:Connect(function()
+            Tween(Notification, "Size", UDim2.new(0, 0, 0, 80), 0.3)
+            wait(0.3)
+            Notification:Destroy()
+        end)
+
+        spawn(function()
+            wait(duration)
+            if Notification.Parent then
+                Tween(Notification, "Size", UDim2.new(0, 0, 0, 80), 0.3)
+                wait(0.3)
+                Notification:Destroy()
+            end
+        end)
+
+        table.insert(WindowData.Notifications, Notification)
+    end
+
     -- Tab System
     function WindowData:AddTab(options)
-        local tabName = options.Name or "Tab"
+        local tabName = options.Name or "Tab " .. (tabCount + 1)
+        tabCount = tabCount + 1
+
         local TabButton = Create("TextButton", TabHolder, {
-            Size = UDim2.new(1, -10, 0, 40),
+            Size = UDim2.new(1, -10, 0, 50),
             BackgroundColor3 = CurrentTheme.Secondary,
+            BackgroundTransparency = 0.2,
             Text = tabName,
             TextColor3 = CurrentTheme.SubText,
             TextSize = 16,
@@ -310,10 +540,12 @@ function NovaUI:CreateWindow(options)
         function Tab:AddButton(options)
             local buttonText = options.Name or "Button"
             local callback = options.Callback or function() end
+            local tooltip = options.Tooltip or ""
 
             local Button = Create("TextButton", TabContent, {
-                Size = UDim2.new(1, 0, 0, 40),
+                Size = UDim2.new(1, 0, 0, 50),
                 BackgroundColor3 = CurrentTheme.Secondary,
+                BackgroundTransparency = 0.2,
                 Text = buttonText,
                 TextColor3 = CurrentTheme.Text,
                 TextSize = 16,
@@ -321,6 +553,30 @@ function NovaUI:CreateWindow(options)
             })
             Create("UICorner", Button, {CornerRadius = UDim.new(0, 8)})
             AddShadow(Button)
+
+            if tooltip ~= "" then
+                local Tooltip = Create("TextLabel", ScreenGui, {
+                    Size = UDim2.new(0, 150, 0, 30),
+                    BackgroundColor3 = CurrentTheme.Secondary,
+                    BackgroundTransparency = 0.2,
+                    Text = tooltip,
+                    TextColor3 = CurrentTheme.Text,
+                    TextSize = 14,
+                    Font = Enum.Font.SourceSans,
+                    Visible = false,
+                    ZIndex = 1000
+                })
+                Create("UICorner", Tooltip, {CornerRadius = UDim.new(0, 8)})
+                AddShadow(Tooltip)
+
+                Button.MouseEnter:Connect(function()
+                    Tooltip.Position = UDim2.new(0, Button.AbsolutePosition.X + Button.AbsoluteSize.X + 5, 0, Button.AbsolutePosition.Y)
+                    Tooltip.Visible = true
+                end)
+                Button.MouseLeave:Connect(function()
+                    Tooltip.Visible = false
+                end)
+            end
 
             Button.MouseButton1Click:Connect(callback)
             Button.MouseEnter:Connect(function()
@@ -332,14 +588,65 @@ function NovaUI:CreateWindow(options)
             return Button
         end
 
+        -- ImageButton
+        function Tab:AddImageButton(options)
+            local image = options.Image or "rbxassetid://6022668899"
+            local callback = options.Callback or function() end
+            local tooltip = options.Tooltip or ""
+
+            local ImageButton = Create("ImageButton", TabContent, {
+                Size = UDim2.new(1, 0, 0, 50),
+                BackgroundColor3 = CurrentTheme.Secondary,
+                BackgroundTransparency = 0.2,
+                Image = image,
+                ImageColor3 = CurrentTheme.Text
+            })
+            Create("UICorner", ImageButton, {CornerRadius = UDim.new(0, 8)})
+            AddShadow(ImageButton)
+
+            if tooltip ~= "" then
+                local Tooltip = Create("TextLabel", ScreenGui, {
+                    Size = UDim2.new(0, 150, 0, 30),
+                    BackgroundColor3 = CurrentTheme.Secondary,
+                    BackgroundTransparency = 0.2,
+                    Text = tooltip,
+                    TextColor3 = CurrentTheme.Text,
+                    TextSize = 14,
+                    Font = Enum.Font.SourceSans,
+                    Visible = false,
+                    ZIndex = 1000
+                })
+                Create("UICorner", Tooltip, {CornerRadius = UDim.new(0, 8)})
+                AddShadow(Tooltip)
+
+                ImageButton.MouseEnter:Connect(function()
+                    Tooltip.Position = UDim2.new(0, ImageButton.AbsolutePosition.X + ImageButton.AbsoluteSize.X + 5, 0, ImageButton.AbsolutePosition.Y)
+                    Tooltip.Visible = true
+                end)
+                ImageButton.MouseLeave:Connect(function()
+                    Tooltip.Visible = false
+                end)
+            end
+
+            ImageButton.MouseButton1Click:Connect(callback)
+            ImageButton.MouseEnter:Connect(function()
+                Tween(ImageButton, "BackgroundColor3", CurrentTheme.Accent, 0.2)
+            end)
+            ImageButton.MouseLeave:Connect(function()
+                Tween(ImageButton, "BackgroundColor3", CurrentTheme.Secondary, 0.2)
+            end)
+            return ImageButton
+        end
+
         -- Toggle
         function Tab:AddToggle(options)
             local toggleText = options.Name or "Toggle"
             local default = options.Default or false
             local callback = options.Callback or function() end
+            local tooltip = options.Tooltip or ""
 
             local ToggleFrame = Create("Frame", TabContent, {
-                Size = UDim2.new(1, 0, 0, 40),
+                Size = UDim2.new(1, 0, 0, 50),
                 BackgroundTransparency = 1
             })
 
@@ -369,6 +676,30 @@ function NovaUI:CreateWindow(options)
             })
             Create("UICorner", Indicator, {CornerRadius = UDim.new(0, 8)})
 
+            if tooltip ~= "" then
+                local Tooltip = Create("TextLabel", ScreenGui, {
+                    Size = UDim2.new(0, 150, 0, 30),
+                    BackgroundColor3 = CurrentTheme.Secondary,
+                    BackgroundTransparency = 0.2,
+                    Text = tooltip,
+                    TextColor3 = CurrentTheme.Text,
+                    TextSize = 14,
+                    Font = Enum.Font.SourceSans,
+                    Visible = false,
+                    ZIndex = 1000
+                })
+                Create("UICorner", Tooltip, {CornerRadius = UDim.new(0, 8)})
+                AddShadow(Tooltip)
+
+                ToggleFrame.MouseEnter:Connect(function()
+                    Tooltip.Position = UDim2.new(0, ToggleFrame.AbsolutePosition.X + ToggleFrame.AbsoluteSize.X + 5, 0, ToggleFrame.AbsolutePosition.Y)
+                    Tooltip.Visible = true
+                end)
+                ToggleFrame.MouseLeave:Connect(function()
+                    Tooltip.Visible = false
+                end)
+            end
+
             local state = default
             local function UpdateToggle()
                 state = not state
@@ -394,6 +725,7 @@ function NovaUI:CreateWindow(options)
             local max = options.Max or 100
             local default = options.Default or min
             local callback = options.Callback or function() end
+            local tooltip = options.Tooltip or ""
 
             local SliderFrame = Create("Frame", TabContent, {
                 Size = UDim2.new(1, 0, 0, 60),
@@ -432,6 +764,30 @@ function NovaUI:CreateWindow(options)
                 TextSize = 14,
                 Font = Enum.Font.SourceSans
             })
+
+            if tooltip ~= "" then
+                local Tooltip = Create("TextLabel", ScreenGui, {
+                    Size = UDim2.new(0, 150, 0, 30),
+                    BackgroundColor3 = CurrentTheme.Secondary,
+                    BackgroundTransparency = 0.2,
+                    Text = tooltip,
+                    TextColor3 = CurrentTheme.Text,
+                    TextSize = 14,
+                    Font = Enum.Font.SourceSans,
+                    Visible = false,
+                    ZIndex = 1000
+                })
+                Create("UICorner", Tooltip, {CornerRadius = UDim.new(0, 8)})
+                AddShadow(Tooltip)
+
+                SliderFrame.MouseEnter:Connect(function()
+                    Tooltip.Position = UDim2.new(0, SliderFrame.AbsolutePosition.X + SliderFrame.AbsoluteSize.X + 5, 0, SliderFrame.AbsolutePosition.Y)
+                    Tooltip.Visible = true
+                end)
+                SliderFrame.MouseLeave:Connect(function()
+                    Tooltip.Visible = false
+                end)
+            end
 
             local value = default
             local function UpdateSlider(input)
@@ -472,9 +828,10 @@ function NovaUI:CreateWindow(options)
             local items = options.Options or {"Option 1", "Option 2"}
             local default = options.Default or items[1]
             local callback = options.Callback or function() end
+            local tooltip = options.Tooltip or ""
 
             local DropdownFrame = Create("Frame", TabContent, {
-                Size = UDim2.new(1, 0, 0, 40),
+                Size = UDim2.new(1, 0, 0, 50),
                 BackgroundTransparency = 1
             })
 
@@ -489,10 +846,11 @@ function NovaUI:CreateWindow(options)
             })
 
             local DropdownButton = Create("TextButton", DropdownFrame, {
-                Size = UDim2.new(0, 110, 0, 30),
+                Size = UDim2.new(0, 110, 0, 40),
                 Position = UDim2.new(1, -5, 0.5, 0),
                 AnchorPoint = Vector2.new(1, 0.5),
                 BackgroundColor3 = CurrentTheme.Secondary,
+                BackgroundTransparency = 0.2,
                 Text = default,
                 TextColor3 = CurrentTheme.Text,
                 TextSize = 14,
@@ -503,14 +861,39 @@ function NovaUI:CreateWindow(options)
 
             local OptionHolder = Create("Frame", ScreenGui, {
                 Size = UDim2.new(0, 110, 0, 0),
-                Position = UDim2.new(0, DropdownButton.AbsolutePosition.X, 0, DropdownButton.AbsolutePosition.Y + 35),
+                Position = UDim2.new(0, DropdownButton.AbsolutePosition.X, 0, DropdownButton.AbsolutePosition.Y + 45),
                 BackgroundColor3 = CurrentTheme.Secondary,
+                BackgroundTransparency = 0.2,
                 Visible = false,
                 ClipsDescendants = true
             })
             Create("UICorner", OptionHolder, {CornerRadius = UDim.new(0, 8)})
             Create("UIListLayout", OptionHolder, {Padding = UDim.new(0, 4)})
             AddShadow(OptionHolder)
+
+            if tooltip ~= "" then
+                local Tooltip = Create("TextLabel", ScreenGui, {
+                    Size = UDim2.new(0, 150, 0, 30),
+                    BackgroundColor3 = CurrentTheme.Secondary,
+                    BackgroundTransparency = 0.2,
+                    Text = tooltip,
+                    TextColor3 = CurrentTheme.Text,
+                    TextSize = 14,
+                    Font = Enum.Font.SourceSans,
+                    Visible = false,
+                    ZIndex = 1000
+                })
+                Create("UICorner", Tooltip, {CornerRadius = UDim.new(0, 8)})
+                AddShadow(Tooltip)
+
+                DropdownFrame.MouseEnter:Connect(function()
+                    Tooltip.Position = UDim2.new(0, DropdownFrame.AbsolutePosition.X + DropdownFrame.AbsoluteSize.X + 5, 0, DropdownFrame.AbsolutePosition.Y)
+                    Tooltip.Visible = true
+                end)
+                DropdownFrame.MouseLeave:Connect(function()
+                    Tooltip.Visible = false
+                end)
+            end
 
             local function UpdateOptions()
                 OptionHolder:ClearAllChildren()
@@ -561,9 +944,10 @@ function NovaUI:CreateWindow(options)
             local textboxText = options.Name or "Textbox"
             local default = options.Default or ""
             local callback = options.Callback or function() end
+            local tooltip = options.Tooltip or ""
 
             local TextboxFrame = Create("Frame", TabContent, {
-                Size = UDim2.new(1, 0, 0, 40),
+                Size = UDim2.new(1, 0, 0, 50),
                 BackgroundTransparency = 1
             })
 
@@ -578,10 +962,11 @@ function NovaUI:CreateWindow(options)
             })
 
             local Textbox = Create("TextBox", TextboxFrame, {
-                Size = UDim2.new(0, 110, 0, 30),
+                Size = UDim2.new(0, 110, 0, 40),
                 Position = UDim2.new(1, -5, 0.5, 0),
                 AnchorPoint = Vector2.new(1, 0.5),
                 BackgroundColor3 = CurrentTheme.Secondary,
+                BackgroundTransparency = 0.2,
                 Text = default,
                 TextColor3 = CurrentTheme.Text,
                 TextSize = 14,
@@ -590,6 +975,30 @@ function NovaUI:CreateWindow(options)
             })
             Create("UICorner", Textbox, {CornerRadius = UDim.new(0, 8)})
             AddShadow(Textbox)
+
+            if tooltip ~= "" then
+                local Tooltip = Create("TextLabel", ScreenGui, {
+                    Size = UDim2.new(0, 150, 0, 30),
+                    BackgroundColor3 = CurrentTheme.Secondary,
+                    BackgroundTransparency = 0.2,
+                    Text = tooltip,
+                    TextColor3 = CurrentTheme.Text,
+                    TextSize = 14,
+                    Font = Enum.Font.SourceSans,
+                    Visible = false,
+                    ZIndex = 1000
+                })
+                Create("UICorner", Tooltip, {CornerRadius = UDim.new(0, 8)})
+                AddShadow(Tooltip)
+
+                TextboxFrame.MouseEnter:Connect(function()
+                    Tooltip.Position = UDim2.new(0, TextboxFrame.AbsolutePosition.X + TextboxFrame.AbsoluteSize.X + 5, 0, TextboxFrame.AbsolutePosition.Y)
+                    Tooltip.Visible = true
+                end)
+                TextboxFrame.MouseLeave:Connect(function()
+                    Tooltip.Visible = false
+                end)
+            end
 
             Textbox.Focused:Connect(function()
                 Tween(Textbox, "BackgroundColor3", CurrentTheme.Border, 0.2)
@@ -614,9 +1023,10 @@ function NovaUI:CreateWindow(options)
             local keybindText = options.Name or "Keybind"
             local default = options.Default or Enum.KeyCode.E
             local callback = options.Callback or function() end
+            local tooltip = options.Tooltip or ""
 
             local KeybindFrame = Create("Frame", TabContent, {
-                Size = UDim2.new(1, 0, 0, 40),
+                Size = UDim2.new(1, 0, 0, 50),
                 BackgroundTransparency = 1
             })
 
@@ -631,10 +1041,11 @@ function NovaUI:CreateWindow(options)
             })
 
             local KeybindButton = Create("TextButton", KeybindFrame, {
-                Size = UDim2.new(0, 110, 0, 30),
+                Size = UDim2.new(0, 110, 0, 40),
                 Position = UDim2.new(1, -5, 0.5, 0),
                 AnchorPoint = Vector2.new(1, 0.5),
                 BackgroundColor3 = CurrentTheme.Secondary,
+                BackgroundTransparency = 0.2,
                 Text = default.Name,
                 TextColor3 = CurrentTheme.Text,
                 TextSize = 14,
@@ -642,6 +1053,30 @@ function NovaUI:CreateWindow(options)
             })
             Create("UICorner", KeybindButton, {CornerRadius = UDim.new(0, 8)})
             AddShadow(KeybindButton)
+
+            if tooltip ~= "" then
+                local Tooltip = Create("TextLabel", ScreenGui, {
+                    Size = UDim2.new(0, 150, 0, 30),
+                    BackgroundColor3 = CurrentTheme.Secondary,
+                    BackgroundTransparency = 0.2,
+                    Text = tooltip,
+                    TextColor3 = CurrentTheme.Text,
+                    TextSize = 14,
+                    Font = Enum.Font.SourceSans,
+                    Visible = false,
+                    ZIndex = 1000
+                })
+                Create("UICorner", Tooltip, {CornerRadius = UDim.new(0, 8)})
+                AddShadow(Tooltip)
+
+                KeybindFrame.MouseEnter:Connect(function()
+                    Tooltip.Position = UDim2.new(0, KeybindFrame.AbsolutePosition.X + KeybindFrame.AbsoluteSize.X + 5, 0, KeybindFrame.AbsolutePosition.Y)
+                    Tooltip.Visible = true
+                end)
+                KeybindFrame.MouseLeave:Connect(function()
+                    Tooltip.Visible = false
+                end)
+            end
 
             local key = default
             local listening = false
@@ -680,9 +1115,10 @@ function NovaUI:CreateWindow(options)
             local pickerText = options.Name or "Color Picker"
             local default = options.Default or Color3.fromRGB(255, 255, 255)
             local callback = options.Callback or function() end
+            local tooltip = options.Tooltip or ""
 
             local ColorFrame = Create("Frame", TabContent, {
-                Size = UDim2.new(1, 0, 0, 40),
+                Size = UDim2.new(1, 0, 0, 50),
                 BackgroundTransparency = 1
             })
 
@@ -697,7 +1133,7 @@ function NovaUI:CreateWindow(options)
             })
 
             local ColorButton = Create("Frame", ColorFrame, {
-                Size = UDim2.new(0, 30, 0, 30),
+                Size = UDim2.new(0, 40, 0, 40),
                 Position = UDim2.new(1, -5, 0.5, 0),
                 AnchorPoint = Vector2.new(1, 0.5),
                 BackgroundColor3 = default
@@ -707,8 +1143,9 @@ function NovaUI:CreateWindow(options)
 
             local PickerFrame = Create("Frame", ScreenGui, {
                 Size = UDim2.new(0, 200, 0, 200),
-                Position = UDim2.new(0, ColorButton.AbsolutePosition.X - 170, 0, ColorButton.AbsolutePosition.Y + 35),
+                Position = UDim2.new(0, ColorButton.AbsolutePosition.X - 170, 0, ColorButton.AbsolutePosition.Y + 45),
                 BackgroundColor3 = CurrentTheme.Secondary,
+                BackgroundTransparency = 0.2,
                 Visible = false,
                 ClipsDescendants = true
             })
@@ -768,6 +1205,30 @@ function NovaUI:CreateWindow(options)
                 BorderColor3 = Color3.fromRGB(0, 0, 0)
             })
             Create("UICorner", HueCursor, {CornerRadius = UDim.new(1, 0)})
+
+            if tooltip ~= "" then
+                local Tooltip = Create("TextLabel", ScreenGui, {
+                    Size = UDim2.new(0, 150, 0, 30),
+                    BackgroundColor3 = CurrentTheme.Secondary,
+                    BackgroundTransparency = 0.2,
+                    Text = tooltip,
+                    TextColor3 = CurrentTheme.Text,
+                    TextSize = 14,
+                    Font = Enum.Font.SourceSans,
+                    Visible = false,
+                    ZIndex = 1000
+                })
+                Create("UICorner", Tooltip, {CornerRadius = UDim.new(0, 8)})
+                AddShadow(Tooltip)
+
+                ColorFrame.MouseEnter:Connect(function()
+                    Tooltip.Position = UDim2.new(0, ColorFrame.AbsolutePosition.X + ColorFrame.AbsoluteSize.X + 5, 0, ColorFrame.AbsolutePosition.Y)
+                    Tooltip.Visible = true
+                end)
+                ColorFrame.MouseLeave:Connect(function()
+                    Tooltip.Visible = false
+                end)
+            end
 
             local color = default
             local h, s, v = Color3.toHSV(default)
@@ -863,8 +1324,113 @@ function NovaUI:CreateWindow(options)
             return ColorFrame
         end
 
+        -- ProgressBar
+        function Tab:AddProgressBar(options)
+            local progressText = options.Name or "Progress"
+            local default = options.Default or 0
+            local max = options.Max or 100
+            local callback = options.Callback or function() end
+            local tooltip = options.Tooltip or ""
+
+            local ProgressFrame = Create("Frame", TabContent, {
+                Size = UDim2.new(1, 0, 0, 60),
+                BackgroundTransparency = 1
+            })
+
+            local Label = Create("TextLabel", ProgressFrame, {
+                Size = UDim2.new(1, 0, 0, 20),
+                BackgroundTransparency = 1,
+                Text = progressText,
+                TextColor3 = CurrentTheme.Text,
+                TextSize = 16,
+                Font = Enum.Font.SourceSansSemibold,
+                TextXAlignment = Enum.TextXAlignment.Left
+            })
+
+            local ProgressBar = Create("Frame", ProgressFrame, {
+                Size = UDim2.new(1, 0, 0, 8),
+                Position = UDim2.new(0, 0, 0, 35),
+                BackgroundColor3 = CurrentTheme.Border
+            })
+            Create("UICorner", ProgressBar, {CornerRadius = UDim.new(0, 4)})
+
+            local Fill = Create("Frame", ProgressBar, {
+                Size = UDim2.new(default / max, 0, 1, 0),
+                BackgroundColor3 = CurrentTheme.Accent
+            })
+            Create("UICorner", Fill, {CornerRadius = UDim.new(0, 4)})
+
+            local ValueLabel = Create("TextLabel", ProgressFrame, {
+                Size = UDim2.new(0, 40, 0, 20),
+                Position = UDim2.new(1, -45, 0, 5),
+                BackgroundTransparency = 1,
+                Text = tostring(default) .. "%",
+                TextColor3 = CurrentTheme.SubText,
+                TextSize = 14,
+                Font = Enum.Font.SourceSans
+            })
+
+            if tooltip ~= "" then
+                local Tooltip = Create("TextLabel", ScreenGui, {
+                    Size = UDim2.new(0, 150, 0, 30),
+                    BackgroundColor3 = CurrentTheme.Secondary,
+                    BackgroundTransparency = 0.2,
+                    Text = tooltip,
+                    TextColor3 = CurrentTheme.Text,
+                    TextSize = 14,
+                    Font = Enum.Font.SourceSans,
+                    Visible = false,
+                    ZIndex = 1000
+                })
+                Create("UICorner", Tooltip, {CornerRadius = UDim.new(0, 8)})
+                AddShadow(Tooltip)
+
+                ProgressFrame.MouseEnter:Connect(function()
+                    Tooltip.Position = UDim2.new(0, ProgressFrame.AbsolutePosition.X + ProgressFrame.AbsoluteSize.X + 5, 0, ProgressFrame.AbsolutePosition.Y)
+                    Tooltip.Visible = true
+                end)
+                ProgressFrame.MouseLeave:Connect(function()
+                    Tooltip.Visible = false
+                end)
+            end
+
+            local function UpdateProgress(value)
+                value = math.clamp(value, 0, max)
+                Tween(Fill, "Size", UDim2.new(value / max, 0, 1, 0), 0.3)
+                ValueLabel.Text = tostring(math.floor(value)) .. "%"
+                callback(value)
+            end
+
+            Tab.Callbacks[progressText] = UpdateProgress
+            return ProgressFrame
+        end
+
         return Tab
     end
+
+    -- Add "Add Tab" Button
+    local AddTabButton = Create("TextButton", TabHolder, {
+        Size = UDim2.new(1, -10, 0, 50),
+        BackgroundColor3 = CurrentTheme.Secondary,
+        BackgroundTransparency = 0.2,
+        Text = "+ Add Tab",
+        TextColor3 = CurrentTheme.SubText,
+        TextSize = 16,
+        Font = Enum.Font.SourceSansSemibold,
+        AutoButtonColor = false
+    })
+    Create("UICorner", AddTabButton, {CornerRadius = UDim.new(0, 8)})
+    AddShadow(AddTabButton)
+
+    AddTabButton.MouseButton1Click:Connect(function()
+        WindowData:AddTab({})
+    end)
+    AddTabButton.MouseEnter:Connect(function()
+        Tween(AddTabButton, "BackgroundColor3", CurrentTheme.Highlight, 0.2)
+    end)
+    AddTabButton.MouseLeave:Connect(function()
+        Tween(AddTabButton, "BackgroundColor3", CurrentTheme.Secondary, 0.2)
+    end)
 
     return WindowData
 end
