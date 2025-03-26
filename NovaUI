@@ -370,7 +370,7 @@ function NovaUI:CreateWindow(options)
     })
     Create("UIListLayout", NotificationHolder, {Padding = UDim.new(0, 10), SortOrder = Enum.SortOrder.LayoutOrder})
 
-    local WindowData = {Tabs = {}, Callbacks = {}, Notifications = {}}
+    local WindowData = {Tabs = {}, Callbacks = {}, Notifications = {}, FirstTab = nil}
     local minimized = false
     local maximized = false
     local originalSize = MainFrame.Size
@@ -576,6 +576,11 @@ function NovaUI:CreateWindow(options)
         local Tab = {Callbacks = {}}
         WindowData.Tabs[tabName] = {Button = TabButton, Content = TabContent}
 
+        -- Sửa logic chọn tab mặc định
+        if not WindowData.FirstTab then
+            WindowData.FirstTab = tabName
+        end
+
         local function ShowTab()
             for _, t in pairs(WindowData.Tabs) do
                 t.Content.Visible = false
@@ -586,6 +591,7 @@ function NovaUI:CreateWindow(options)
             Tween(TabButton, "BackgroundColor3", CurrentTheme.Accent, 0.2)
             Tween(TabButton, "TextColor3", CurrentTheme.Text, 0.2)
         end
+
         TabButton.MouseButton1Click:Connect(ShowTab)
         TabButton.MouseEnter:Connect(function()
             if not TabContent.Visible then
@@ -597,7 +603,11 @@ function NovaUI:CreateWindow(options)
                 Tween(TabButton, "BackgroundColor3", CurrentTheme.Secondary, 0.2)
             end
         end)
-        if not next(WindowData.Tabs) then ShowTab() end
+
+        -- Chọn tab đầu tiên mặc định
+        if tabName == WindowData.FirstTab then
+            ShowTab()
+        end
 
         function Tab:AddSection(options)
             local sectionName = options.Name or "Section"
@@ -1405,7 +1415,7 @@ function NovaUI:CreateWindow(options)
             local HueCursor = Create("Frame", HueBar, {
                 Size = UDim2.new(1, 4, 0, 4),
                 AnchorPoint = Vector2.new(0.5, 0.5),
-                BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                BackgroundColor3 = Color3.fromRGB(255, 255, 0),
                 BorderColor3 = Color3.fromRGB(0, 0, 0)
             })
             Create("UICorner", HueCursor, {CornerRadius = UDim.new(1, 0)})
