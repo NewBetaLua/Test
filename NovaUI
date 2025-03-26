@@ -652,56 +652,73 @@ function NovaUI:CreateWindow(options)
         end
 
         -- Button
-        function Tab:AddButton(options)
-            local buttonText = options.Name or "Button"
-            local callback = options.Callback or function() end
-            local tooltip = options.Tooltip or ""
+        -- Sửa phần AddButton trong Tab
+function Tab:AddButton(options)
+    local buttonText = options.Name or "Button"
+    local callback = options.Callback or function() end
+    local tooltip = options.Tooltip or ""
 
-            local Button = Create("TextButton", TabContent, {
-                Size = UDim2.new(1, 0, 0, 50),
-                BackgroundColor3 = CurrentTheme.Secondary,
-                BackgroundTransparency = 0.4,
-                Text = buttonText,
-                TextColor3 = CurrentTheme.Text,
-                TextSize = 16,
-                Font = Enum.Font.SourceSansSemibold
-            })
-            Create("UICorner", Button, {CornerRadius = UDim.new(0, 8)})
-            AddShadow(Button)
+    local Button = Create("TextButton", TabContent, {
+        Size = UDim2.new(1, 0, 0, 50),
+        BackgroundColor3 = CurrentTheme.Secondary,
+        BackgroundTransparency = 0.4,
+        Text = buttonText,
+        TextColor3 = CurrentTheme.Text,
+        TextSize = 16,
+        Font = Enum.Font.SourceSansSemibold
+    })
+    Create("UICorner", Button, {CornerRadius = UDim.new(0, 8)})
+    AddShadow(Button)
 
-            if tooltip ~= "" then
-                local Tooltip = Create("TextLabel", ScreenGui, {
-                    Size = UDim2.new(0, 150, 0, 30),
-                    BackgroundColor3 = CurrentTheme.Secondary,
-                    BackgroundTransparency = 0.4,
-                    Text = tooltip,
-                    TextColor3 = CurrentTheme.Text,
-                    TextSize = 14,
-                    Font = Enum.Font.SourceSans,
-                    Visible = false,
-                    ZIndex = 1000
-                })
-                Create("UICorner", Tooltip, {CornerRadius = UDim.new(0, 8)})
-                AddShadow(Tooltip)
+    if tooltip ~= "" then
+        local Tooltip = Create("TextLabel", ScreenGui, {
+            Size = UDim2.new(0, 150, 0, 30),
+            BackgroundColor3 = CurrentTheme.Secondary,
+            BackgroundTransparency = 0.4,
+            Text = tooltip,
+            TextColor3 = CurrentTheme.Text,
+            TextSize = 14,
+            Font = Enum.Font.SourceSans,
+            Visible = false,
+            ZIndex = 1000
+        })
+        Create("UICorner", Tooltip, {CornerRadius = UDim.new(0, 8)})
+        AddShadow(Tooltip)
 
-                Button.MouseEnter:Connect(function()
-                    Tooltip.Position = UDim2.new(0, Button.AbsolutePosition.X + Button.AbsoluteSize.X + 5, 0, Button.AbsolutePosition.Y)
-                    Tooltip.Visible = true
-                end)
-                Button.MouseLeave:Connect(function()
-                    Tooltip.Visible = false
-                end)
-            end
+        Button.MouseEnter:Connect(function()
+            -- Tính toán vị trí của Tooltip dựa trên vị trí của Button
+            local buttonAbsPos = Button.AbsolutePosition
+            local buttonAbsSize = Button.AbsoluteSize
+            -- Đảm bảo Tooltip xuất hiện bên phải của Button
+            Tooltip.Position = UDim2.new(0, buttonAbsPos.X + buttonAbsSize.X + 5, 0, buttonAbsPos.Y)
+            Tooltip.Visible = true
+        end)
 
-            Button.MouseButton1Click:Connect(callback)
-            Button.MouseEnter:Connect(function()
-                Tween(Button, "BackgroundColor3", CurrentTheme.Accent, 0.2)
+        Button.MouseLeave:Connect(function()
+            Tooltip.Visible = false
+        end)
+
+        -- Thêm xử lý khi CanvasPosition của ScrollingFrame thay đổi
+        if TabContent:IsA("ScrollingFrame") then
+            TabContent:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+                if Tooltip.Visible then
+                    local buttonAbsPos = Button.AbsolutePosition
+                    local buttonAbsSize = Button.AbsoluteSize
+                    Tooltip.Position = UDim2.new(0, buttonAbsPos.X + buttonAbsSize.X + 5, 0, buttonAbsPos.Y)
+                end
             end)
-            Button.MouseLeave:Connect(function()
-                Tween(Button, "BackgroundColor3", CurrentTheme.Secondary, 0.2)
-            end)
-            return Button
         end
+    end
+
+    Button.MouseButton1Click:Connect(callback)
+    Button.MouseEnter:Connect(function()
+        Tween(Button, "BackgroundColor3", CurrentTheme.Accent, 0.2)
+    end)
+    Button.MouseLeave:Connect(function()
+        Tween(Button, "BackgroundColor3", CurrentTheme.Secondary, 0.2)
+    end)
+    return Button
+end
 
         -- ImageButton
         function Tab:AddImageButton(options)
