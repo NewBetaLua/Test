@@ -1,0 +1,4 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/NewBetaLua/Test/refs/heads/main/fastattack"))()
+if loadstring(game:HttpGet("https://raw.githubusercontent.com/NewBetaLua/Test/refs/heads/main/fastattack"))() then
+  loadstring(game:HttpGet("https://raw.githubusercontent.com/NewBetaLua/Test/refs/heads/main/CrackMatsune"))()
+end
